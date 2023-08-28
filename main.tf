@@ -179,10 +179,10 @@ resource "aws_instance" "instance_1" {
 
 resource "aws_instance" "app" {
     # SPR
-    instance_type = "m7i.8xlarge"
+    instance_type = "m7i.4xlarge"
     ami = "ami-05d251e0fc338590c"
     # Graviton3 (ARM)
-    #instance_type = "m7g.xlarge"
+    #instance_type = "m7g.8xlarge"
     #ami = "ami-0b5801d081fa3a76c"
     subnet_id = aws_subnet.gabe_subnet.id
     key_name = aws_key_pair.my-identity-pem.key_name
@@ -252,6 +252,10 @@ output "login" {
 
 output "controller_ip" {
     value = "${aws_instance.instance_1.public_ip}"
+}
+
+output "machine_type" {
+    value = "${aws_instance.app.instance_type}"
 }
 
 # output "sndbox_ip" {

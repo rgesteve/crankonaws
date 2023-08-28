@@ -7,3 +7,4 @@
 *.pem
 generated*
 
+aws_*/

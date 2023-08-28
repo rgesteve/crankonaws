@@ -15,4 +15,3 @@ ansible-playbook -i generated_inventory.yaml --private-key ./MyIdentity.pem inst
 ansible-playbook -i generated_inventory.yaml --private-key ./MyIdentity.pem config_collectd_playbook.yaml
 
 scp -i ./MyIdentity.pem -o StrictHostKeyChecking=no ./MyIdentity.pem $Target
-
