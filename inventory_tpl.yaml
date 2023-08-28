@@ -10,7 +10,18 @@ all:
       ansible_ssh_user: ubuntu
       ansible_ssh_common_args: -o StrictHostKeyChecking=no
 
-    sndbox:
-      ansible_host: ${sndbox_ip}
+    app:
+      ansible_host: ${app_ip}
       ansible_ssh_user: ubuntu
       ansible_ssh_common_args: -o StrictHostKeyChecking=no
+
+    loadgen:
+      ansible_host: ${loadgen_ip}
+      ansible_ssh_user: ubuntu
+      ansible_ssh_common_args: -o StrictHostKeyChecking=no
+
+    db:
+      ansible_host: ${db_ip}
+      ansible_ssh_user: ubuntu
+      ansible_ssh_common_args: -o StrictHostKeyChecking=no
+

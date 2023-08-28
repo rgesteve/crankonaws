@@ -113,11 +113,11 @@ resource "aws_instance" "instance_1" {
     #user_data = data.template_file.user_data.rendered
     #user_data = file("cloud-init.yml")
     #user_data = templatefile("cloud-init.yml", { app_ip = aws_instance.app_fake.private_ip })
-    # user_data = templatefile("cloud-init.yml", { app_ip = aws_instance.app.private_ip, 
-    #                                              db_ip = aws_instance.db.private_ip, 
-    #                                              load_ip = aws_instance.loadgen.private_ip, 
-    #                                              ssh_key = aws_key_pair.my-identity-pem.key_name,
-    #                                              machine = aws_instance.app.instance_type })
+    user_data = templatefile("cloud-init.yml", { app_ip = aws_instance.app.private_ip, 
+                                                 db_ip = aws_instance.db.private_ip, 
+                                                 load_ip = aws_instance.loadgen.private_ip, 
+                                                 ssh_key = aws_key_pair.my-identity-pem.key_name,
+                                                 machine = aws_instance.app.instance_type })
     #user_data = data.cloudinit_config.testclinit.rendered
 
     # Not sure how to pass the Intel proxy spec (scp -o "ProxyCommand=nc -x proxy-us.intel.com:1080 %h %p" -i <private_key> <source> <destination>) 
@@ -151,85 +151,55 @@ resource "aws_instance" "instance_1" {
     }
 }
 
-resource "aws_instance" "instance_2" {
-    instance_type = "t2.nano"
-    #instance_type = "m7i.4xlarge"
-    ami = "ami-05d251e0fc338590c"
-    subnet_id = aws_subnet.gabe_subnet.id
-    associate_public_ip_address = true
-    key_name = aws_key_pair.my-identity-pem.key_name
-    #security_groups = [aws_security_group.allow_ssh_from_intel.name]
-    vpc_security_group_ids = [aws_default_security_group.allow_ssh_from_intel.id]
-    tags = {
-        Name = "rgesteve-crank-controller"
-    }
-}
-
-# # resource "aws_instance" "app_fake" {
-# #     instance_type = "t2.nano"
-# #     ami = "ami-05d251e0fc338590c"
-# #     subnet_id = aws_subnet.gabe_subnet.id
-# #     key_name = aws_key_pair.my-identity-pem.key_name
-# #     vpc_security_group_ids = [aws_default_security_group.allow_ssh_from_intel.id]
-    
-# #     tags = {
-# #         Name = "rgesteve-crank-appfake"
-# #     }
-# # }
-
-# resource "aws_instance" "app" {
-#     # SPR
-#     #instance_type = "m7i.xlarge"
-#     #ami = "ami-05d251e0fc338590c"
-#     # Graviton3 (ARM)
-#     instance_type = "m7g.xlarge"
-#     ami = "ami-0b5801d081fa3a76c"
+# resource "aws_instance" "instance_2" {
+#     instance_type = "t2.nano"
+#     #instance_type = "m7i.4xlarge"
+#     ami = "ami-05d251e0fc338590c"
 #     subnet_id = aws_subnet.gabe_subnet.id
+#     associate_public_ip_address = true
 #     key_name = aws_key_pair.my-identity-pem.key_name
 #     #security_groups = [aws_security_group.allow_ssh_from_intel.name]
 #     vpc_security_group_ids = [aws_default_security_group.allow_ssh_from_intel.id]
-#     #private_ip = "${cidrhost(aws_vpc.gabe_vpc.cidr_block, 20 + count.index)}"
-
-#     user_data = file("cloud-init-worker.yml")
-    
 #     tags = {
-#         Name = "rgesteve-crank-app"
+#         Name = "rgesteve-crank-controller"
 #     }
 # }
 
-# # resource "aws_instance" "worker" {
-# #     count = 2
-# #     # instance_type = "t2.nano"
-# #     instance_type = "m7i.xlarge"
-# #     ami = "ami-05d251e0fc338590c"
-# #     subnet_id = aws_subnet.gabe_subnet.id
-# #     key_name = aws_key_pair.my-identity-pem.key_name
-# #     #security_groups = [aws_security_group.allow_ssh_from_intel.name]
-# #     vpc_security_group_ids = [aws_default_security_group.allow_ssh_from_intel.id]
-# #     #private_ip = "${cidrhost(aws_vpc.gabe_vpc.cidr_block, 20 + count.index)}"
-    
-# #     tags = {
-# #         Name = "rgesteve-crank-worker"
-# #     }
-# # }
-
-# resource "aws_instance" "loadgen" {
-#     instance_type = "m7i.4xlarge"
+# resource "aws_instance" "app_fake" {
+#     instance_type = "t2.nano"
 #     ami = "ami-05d251e0fc338590c"
 #     subnet_id = aws_subnet.gabe_subnet.id
 #     key_name = aws_key_pair.my-identity-pem.key_name
-#     #security_groups = [aws_security_group.allow_ssh_from_intel.name]
 #     vpc_security_group_ids = [aws_default_security_group.allow_ssh_from_intel.id]
-#     #private_ip = "${cidrhost(aws_vpc.gabe_vpc.cidr_block, 20 + count.index)}"
-
-#     user_data = file("cloud-init-worker.yml")
     
 #     tags = {
-#         Name = "rgesteve-crank-loadgen"
+#         Name = "rgesteve-crank-appfake"
 #     }
 # }
 
-# resource "aws_instance" "db" {
+resource "aws_instance" "app" {
+    # SPR
+    instance_type = "m7i.8xlarge"
+    ami = "ami-05d251e0fc338590c"
+    # Graviton3 (ARM)
+    #instance_type = "m7g.xlarge"
+    #ami = "ami-0b5801d081fa3a76c"
+    subnet_id = aws_subnet.gabe_subnet.id
+    key_name = aws_key_pair.my-identity-pem.key_name
+    #security_groups = [aws_security_group.allow_ssh_from_intel.name]
+    vpc_security_group_ids = [aws_default_security_group.allow_ssh_from_intel.id]
+    #private_ip = "${cidrhost(aws_vpc.gabe_vpc.cidr_block, 20 + count.index)}"
+
+    user_data = file("cloud-init-worker.yml")
+    
+    tags = {
+        Name = "rgesteve-crank-app"
+    }
+}
+
+# resource "aws_instance" "worker" {
+#     count = 2
+#     # instance_type = "t2.nano"
 #     instance_type = "m7i.xlarge"
 #     ami = "ami-05d251e0fc338590c"
 #     subnet_id = aws_subnet.gabe_subnet.id
@@ -238,28 +208,59 @@ resource "aws_instance" "instance_2" {
 #     vpc_security_group_ids = [aws_default_security_group.allow_ssh_from_intel.id]
 #     #private_ip = "${cidrhost(aws_vpc.gabe_vpc.cidr_block, 20 + count.index)}"
     
-#     user_data = file("cloud-init-worker.yml")
-
 #     tags = {
-#         Name = "rgesteve-crank-db"
+#         Name = "rgesteve-crank-worker"
 #     }
 # }
 
+resource "aws_instance" "loadgen" {
+    instance_type = "m7i.4xlarge"
+    ami = "ami-05d251e0fc338590c"
+    subnet_id = aws_subnet.gabe_subnet.id
+    key_name = aws_key_pair.my-identity-pem.key_name
+    #security_groups = [aws_security_group.allow_ssh_from_intel.name]
+    vpc_security_group_ids = [aws_default_security_group.allow_ssh_from_intel.id]
+    #private_ip = "${cidrhost(aws_vpc.gabe_vpc.cidr_block, 20 + count.index)}"
+
+    user_data = file("cloud-init-worker.yml")
+    
+    tags = {
+        Name = "rgesteve-crank-loadgen"
+    }
+}
+
+resource "aws_instance" "db" {
+    instance_type = "m7i.xlarge"
+    ami = "ami-05d251e0fc338590c"
+    subnet_id = aws_subnet.gabe_subnet.id
+    key_name = aws_key_pair.my-identity-pem.key_name
+    #security_groups = [aws_security_group.allow_ssh_from_intel.name]
+    vpc_security_group_ids = [aws_default_security_group.allow_ssh_from_intel.id]
+    #private_ip = "${cidrhost(aws_vpc.gabe_vpc.cidr_block, 20 + count.index)}"
+    
+    user_data = file("cloud-init-worker.yml")
+
+    tags = {
+        Name = "rgesteve-crank-db"
+    }
+}
+
 output "login" {
-    value = "ssh -o \"ProxyCommand=nc -x proxy-us.intel.com:1080 %h %p\" -i ./${aws_key_pair.my-identity-pem.key_name} ubuntu@${aws_instance.instance_1.public_ip}"
+#    value = "ssh -o \"ProxyCommand=nc -x proxy-us.intel.com:1080 %h %p\" -i ./${aws_key_pair.my-identity-pem.key_name} ubuntu@${aws_instance.instance_1.public_ip}"
+    value = "ssh -i ./${aws_key_pair.my-identity-pem.key_name} ubuntu@${aws_instance.instance_1.public_ip}"
 }
 
 output "controller_ip" {
     value = "${aws_instance.instance_1.public_ip}"
 }
 
-output "sndbox_ip" {
-    value = "${aws_instance.instance_2.public_ip}"
-}
-
-# output "app_ips" {
-#     value = "The application public IP is: ${aws_instance.app.public_ip}, and its private ip is: ${aws_instance.app.private_ip}."
+# output "sndbox_ip" {
+#     value = "${aws_instance.instance_2.public_ip}"
 # }
+
+output "app_ips" {
+    value = "The application public IP is: ${aws_instance.app.public_ip}, and its private ip is: ${aws_instance.app.private_ip}."
+}
 
 # output "worker_pubips" {
 #     value = "The workers' public IP are 0: ${aws_instance.worker[0].public_ip}, 1: ${aws_instance.worker[1].public_ip}."
@@ -269,12 +270,15 @@ output "sndbox_ip" {
 #     value = "The workers' public IP are 0: ${aws_instance.worker[0].private_ip}, 1: ${aws_instance.worker[1].private_ip}."
 # }
 
-# output "private_ips" {
-#     value = "The worker private IPs are: app: ${aws_instance.app.private_ip}, loadgen: ${aws_instance.loadgen.private_ip}, and db: ${aws_instance.db.private_ip}."
-# }
+output "private_ips" {
+    value = "The worker private IPs are: app: ${aws_instance.app.private_ip}, loadgen: ${aws_instance.loadgen.private_ip}, and db: ${aws_instance.db.private_ip}."
+}
 
 resource "local_file" "generated_inventory" {
   content = templatefile("inventory_tpl.yaml", {controller_ip = aws_instance.instance_1.public_ip, 
-  	    				        sndbox_ip = aws_instance.instance_2.public_ip})
+  	    				        app_ip = aws_instance.app.public_ip
+  	    				        loadgen_ip = aws_instance.loadgen.public_ip
+  	    				        db_ip = aws_instance.db.public_ip						
+						})
   filename = "generated_inventory.yaml"
 }

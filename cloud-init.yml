@@ -57,7 +57,13 @@ write_files:
       tmux new-window -n "app" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${app_ip}
       tmux new-window -n "db" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${db_ip}
       tmux new-window -n "loadgen" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_ip}
-      tmux new-window -n "loadgen-mon" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_ip}
+
+  - path: /tmp/crank_copy-traces.sh
+    #owner: "ubuntu:ubuntu"
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+      scp -r -i ./${ssh_key} ubuntu@${load_ip}:/var/lib/collectd/csv .
 
   - path: /tmp/crank_profile.yaml
     #owner: "ubuntu:ubuntu"
