@@ -9,6 +9,9 @@ echo "The controller's IP is $ControllerIP"
 Target="ubuntu@$ControllerIP:/home/ubuntu"
 echo "Trying to copy file to controller with target: $Target"
 echo "The second box's IP is $SndBoxIP"
-scp -i ./MyIdentity.pem -o StrictHostKeyChecking=no ./MyIdentity.pem $Target
 
+ansible -m ping -i generated_inventory.yaml --private-key ./MyIdentity.pem all
+ansible-playbook -i generated_inventory.yaml --private-key ./MyIdentity.pem install_collectd_playbook.yaml
+
+scp -i ./MyIdentity.pem -o StrictHostKeyChecking=no ./MyIdentity.pem $Target
 
