@@ -1,6 +1,16 @@
-[bastion]
-${controller_ip} ansible_ssh_user=ubuntu
+all:
+  vars:
+    # ansible_ssh_common_args: -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p -q -i <pem_file> root@180.184.33.145"
+    # ansible_ssh_private_key_file: <pem_file>
+    host_key_checking: false
 
-[sndbox]
-${sndbox_ip} ansible_ssh_user=ubuntu
+  hosts:
+    bastion:
+      ansible_host: ${controller_ip}
+      ansible_ssh_user: ubuntu
+      ansible_ssh_common_args: -o StrictHostKeyChecking=no
 
+    sndbox:
+      ansible_host: ${sndbox_ip}
+      ansible_ssh_user: ubuntu
+      ansible_ssh_common_args: -o StrictHostKeyChecking=no
