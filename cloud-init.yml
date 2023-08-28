@@ -1,0 +1,121 @@
+#cloud-config
+
+#package_upgrade: true
+# this doesn't seem to work
+# users:
+#   - name: crank
+#     groups:
+#       - sudo
+
+# users:
+#   - name: crank
+#     # ssh-authorized-keys:
+#     #   - ${ssh_key}
+#     sudo: ['ALL=(ALL) NOPASSWD:ALL']
+#     #groups: [sudo, docker]
+#     groups: [sudo]
+#     shell: /bin/bash
+
+# For all
+# wget https://dot.net/v1/dotnet-install.sh
+# chmod a+x ./dotnet-install.sh
+# ./dotnet-install.sh -InstallDir ~/dnet7 -Channel 7.0
+# For workers
+# PATH=$HOME/dnet7:$PATH dotnet tool install -g Microsoft.Crank.Agent --version "0.2.0-*"
+# DOTNET_ROOT=$HOME/dnet7 PATH=$HOME/.dotnet/tools:$PATH crank-agent
+# For controller
+# PATH=$HOME/dnet7:$PATH dotnet tool install -g Microsoft.Crank.Controller --version "0.2.0-*" 
+# git clone https://github.com/aspnet/Benchmarks.git
+# DOTNET_ROOT=$HOME/dnet7 PATH=$HOME/.dotnet/tools:$PATH crank <and a bunch of configuration>
+# 
+
+# //         If you don't, you can disable this policy by using 'config.WithOptions(ConfigOptions.DisableOptimizationsValidator)'.
+
+# http://bazaar.launchpad.net/~cloud-init-dev/cloud-init/trunk/view/head:/cloudinit/config/cc_write_files.py
+write_files:
+  - path: /tmp/crank_setup-crank.sh
+    #owner: "ubuntu:ubuntu"
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+      wget https://dot.net/v1/dotnet-install.sh
+      chmod a+x dotnet-install.sh
+      ./dotnet-install.sh -InstallDir $HOME/dnet7 -Channel 7.0
+      PATH=$HOME/dnet7:$PATH dotnet tool install -g Microsoft.Crank.Controller --version "0.2.0-*" 
+      git clone --depth=1 https://github.com/aspnet/Benchmarks.git
+
+  - path: /tmp/crank_connect-workers.sh
+    #owner: "ubuntu:ubuntu"
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+      if ! tmux has-session; then
+        echo "No tmux server running, please check that it's installed and running"
+        exit 1
+      fi
+
+      tmux new-window -n "app" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${app_ip}
+      tmux new-window -n "db" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${db_ip}
+      tmux new-window -n "loadgen" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_ip}
+      tmux new-window -n "loadgen-mon" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_ip}
+
+  - path: /tmp/crank_profile.yaml
+    #owner: "ubuntu:ubuntu"
+    permissions: '0666'
+    content: |
+      # The `aspnet-aws-citrine-lin` profile (from asnet/Benchmarks) updated with proper IPs
+      # Now with the value of a variable: [ ${app_ip} ].
+      imports:
+        - https://github.com/aspnet/Benchmarks/blob/main/scenarios/packages.yml?raw=true
+
+      profiles:
+        aspnet-aws-citrine-lin:
+          variables:
+            serverAddress: ${app_ip}
+            cores: 28
+          jobs: 
+            db:
+              endpoints: 
+                - http://${db_ip}:5010
+              aliases:
+                - downstream
+                - extra
+            application:
+              endpoints: 
+                - http://${app_ip}:5010
+              variables:
+                databaseServer: ${db_ip}
+              aliases:
+                - main
+            load:
+              endpoints: 
+                - http://${load_ip}:5010
+              aliases:
+                - warmup
+                - secondary
+
+  - path: /tmp/crank_run-crank.sh
+    #owner: "ubuntu:ubuntu"
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+      configs=("platform.benchmarks.yml" "plaintext.benchmarks.yml" "platform.benchmarks.yml" "json.benchmarks.yml")
+      scenarios=("plaintext" "plaintext" "json" "json")
+      wlnames=("platformplaintext" "plaintext" "platformjson" "json")
+      machine="${machine}"
+      
+      for (( i=0; i<$${#configs[@]}; i++ )); do
+        config=$${configs[i]}
+        scenario=$${scenarios[i]}
+        outfname=$${wlnames[i]}_$${machine}_7of10.json
+
+        DOTNET_ROOT=$HOME/dnet7 PATH=$HOME/.dotnet/tools:$PATH crank --config Benchmarks/scenarios/$config --config /tmp/crank_profile.yaml --scenario $scenario --profile aspnet-aws-citrine-lin --application.framework net8.0 --load.framework net8.0 --iterations 10 --exclude 3:0 --exclude-order load:http/rps/mean --json $outfname
+        #echo "config: " "$config" " running scenario: " "$scenario" "."
+      done
+
+#runcmd:
+#  - [ sh, -xc, "echo $(date) : 'hello world!' > /home/ubuntu/test_runcmd.log"]
+#  - [ sh, -c, echo "=========== hello world =============="]
+#  - [ sh, -xc, "echo $(ls /home/ubuntu/profile.yaml) : 'checking on file creation' > /home/ubuntu/test1_runcmd.log"]
+#  - [ chown, "ubuntu:ubuntu", "/home/ubuntu/setup-crank.sh"]
+#  - [ chown, "ubuntu:ubuntu", "/home/ubuntu/profile.yaml"]

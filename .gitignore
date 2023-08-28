@@ -1,0 +1,9 @@
+*~
+.terraform/
+# Not sure if I shouldn't be committing these
+*.plan
+
+*.tfstate*
+*.pem
+generated*
+

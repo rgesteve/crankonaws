@@ -1,0 +1,11 @@
+---
+- hosts: all
+  become: yes
+  tasks: 
+  - name: Install packages
+    apt:
+      name:
+      - collectd
+      update_cache: yes
+      state: latest
+

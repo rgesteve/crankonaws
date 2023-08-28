@@ -1,0 +1,6 @@
+[bastion]
+${controller_ip} ansible_ssh_user=ubuntu
+
+[sndbox]
+${sndbox_ip} ansible_ssh_user=ubuntu
+
