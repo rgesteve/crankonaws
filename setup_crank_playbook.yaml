@@ -1,0 +1,8 @@
+- hosts: all
+  become: false
+  tasks:
+  - name: Install crank on all boxes
+    shell: nohup '/tmp/crank_setup-crank.sh' &
+    async: 30
+    poll: 10
+    
