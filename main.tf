@@ -34,6 +34,11 @@ variable "sg_whitelist_cidr_blocks" {
                "134.191.197.160/27"]
 }
 
+variable "instance_size" {
+  type = string
+  default = ""
+}
+
 resource "aws_key_pair" "my-identity-pem" {
     public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCWL0jMtMdtfnoG8C9szpuz/sgEdzvw1F1f+i9Y+Pf3ajLJEhuyscFDMaNkT6g9KV5w6LPyLqUWGD4p+6MWq2JGV0AE2Jw/YEiscLGN0sCJJcZ8p99lOxzZFtD8B9H32hdoNfdQfvA6Ae0T0WI9nngXfmZBb9r6JiBietdK/nwGEzh1FGA76pCN6FCFYAK6VDpKfdPObLKWkqJW/SBP1bKBmhpcTUPdWu6pNnrgpBL3A6MXpp4Fh+nNrs4+jMRzy+btVA5ZAnCjbjnD7xj8Z8sQiZSO0rVEU8FLwVIJMDQNS2z0CYjZlVCH9MMIOC9NISRr19Uj7S5XWxZ6+8TtZiyGFfxXmLk/8SSvMWVZ+c8d9xlSk3qIxn9vPddZH8CxJQaGK8hNZzNV+MUfk77k6F+NOouzcbtyjdBHuGvke7iaNj08okO7Twdib4zhNIPFkuBgBOUC10XLjPV1ug6DKiTRdA3LO5x5edXqAzh0WITQyvRWP4Q8DfDfVRNLFSi8leiT42ZjZY4fNyAnDt8+ybd1Fst/+DKGVIPYE/4Nh8vzrlwIFYhjA7tWDd94JBo3bwgkZvRCPZ9Zm2EWHMf9d7fvx4N42qzr0SIzqNnuOmVxJ4+3A8ZEJ93R8tY44BV7zDUTIW+9inIbyYBwkgfbCgdcxXGPugUbQGzJQAtz3lHQgQ== amr\rgesteve@rgesteve-dev"
     key_name = "MyIdentity.pem"
@@ -113,11 +118,14 @@ resource "aws_instance" "instance_1" {
     #user_data = data.template_file.user_data.rendered
     #user_data = file("cloud-init.yml")
     #user_data = templatefile("cloud-init.yml", { app_ip = aws_instance.app_fake.private_ip })
-    user_data = templatefile("cloud-init.yml", { app_ip = aws_instance.app.private_ip, 
+    user_data = templatefile("cloud-init.yml", { app_x86_ip = aws_instance.app_x86.private_ip,
+                                                 app_arm_ip = aws_instance.app_arm.private_ip,
                                                  db_ip = aws_instance.db.private_ip, 
-                                                 load_ip = aws_instance.loadgen.private_ip, 
+                                                 load_x86_ip = aws_instance.loadgen_x86.private_ip,
+                                                 load_arm_ip = aws_instance.loadgen_arm.private_ip, 	 
                                                  ssh_key = aws_key_pair.my-identity-pem.key_name,
-                                                 machine = aws_instance.app.instance_type })
+						 # FIXME
+                                                 machine = aws_instance.app_x86.instance_type })
     #user_data = data.cloudinit_config.testclinit.rendered
 
     # Not sure how to pass the Intel proxy spec (scp -o "ProxyCommand=nc -x proxy-us.intel.com:1080 %h %p" -i <private_key> <source> <destination>) 
@@ -177,12 +185,13 @@ resource "aws_instance" "instance_1" {
 #     }
 # }
 
-resource "aws_instance" "app" {
+resource "aws_instance" "app_x86" {
     # SPR
-    instance_type = "m7i.4xlarge"
+    #instance_type = "m7i.xlarge"
+    instance_type = "m7i.${var.instance_size}xlarge"
     ami = "ami-05d251e0fc338590c"
     # Graviton3 (ARM)
-    #instance_type = "m7g.8xlarge"
+    #instance_type = "m7g.12xlarge"
     #ami = "ami-0b5801d081fa3a76c"
     subnet_id = aws_subnet.gabe_subnet.id
     key_name = aws_key_pair.my-identity-pem.key_name
@@ -213,7 +222,41 @@ resource "aws_instance" "app" {
 #     }
 # }
 
-resource "aws_instance" "loadgen" {
+resource "aws_instance" "loadgen_x86" {
+    instance_type = "m7i.4xlarge"
+    ami = "ami-05d251e0fc338590c"
+    subnet_id = aws_subnet.gabe_subnet.id
+    key_name = aws_key_pair.my-identity-pem.key_name
+    #security_groups = [aws_security_group.allow_ssh_from_intel.name]
+    vpc_security_group_ids = [aws_default_security_group.allow_ssh_from_intel.id]
+    #private_ip = "${cidrhost(aws_vpc.gabe_vpc.cidr_block, 20 + count.index)}"
+
+    user_data = file("cloud-init-worker.yml")
+    
+    tags = {
+        Name = "rgesteve-crank-loadgen"
+    }
+}
+
+resource "aws_instance" "app_arm" {
+    # Graviton3 (ARM)
+    instance_type = "m7g.${var.instance_size}xlarge"
+    ami = "ami-0b5801d081fa3a76c"
+    subnet_id = aws_subnet.gabe_subnet.id
+    key_name = aws_key_pair.my-identity-pem.key_name
+    #security_groups = [aws_security_group.allow_ssh_from_intel.name]
+    vpc_security_group_ids = [aws_default_security_group.allow_ssh_from_intel.id]
+    #private_ip = "${cidrhost(aws_vpc.gabe_vpc.cidr_block, 20 + count.index)}"
+
+    user_data = file("cloud-init-worker.yml")
+    
+    tags = {
+        Name = "rgesteve-crank-app"
+    }
+}
+
+# This is called "loadgen_arm" but doesn't mean it's an ARM machine, it's just to feed the Graviton
+resource "aws_instance" "loadgen_arm" {
     instance_type = "m7i.4xlarge"
     ami = "ami-05d251e0fc338590c"
     subnet_id = aws_subnet.gabe_subnet.id
@@ -254,16 +297,24 @@ output "controller_ip" {
     value = "${aws_instance.instance_1.public_ip}"
 }
 
-output "machine_type" {
-    value = "${aws_instance.app.instance_type}"
+output "machine_type_x86" {
+    value = "${aws_instance.app_x86.instance_type}"
+}
+
+output "machine_type_arm" {
+    value = "${aws_instance.app_arm.instance_type}"
 }
 
 # output "sndbox_ip" {
 #     value = "${aws_instance.instance_2.public_ip}"
 # }
 
-output "app_ips" {
-    value = "The application public IP is: ${aws_instance.app.public_ip}, and its private ip is: ${aws_instance.app.private_ip}."
+output "app_x86_ips" {
+    value = "The application (x86) public IP is: ${aws_instance.app_x86.public_ip}, and its private ip is: ${aws_instance.app_x86.private_ip}."
+}
+
+output "app_arm_ips" {
+    value = "The application (arm) public IP is: ${aws_instance.app_arm.public_ip}, and its private ip is: ${aws_instance.app_arm.private_ip}."
 }
 
 # output "worker_pubips" {
@@ -275,14 +326,16 @@ output "app_ips" {
 # }
 
 output "private_ips" {
-    value = "The worker private IPs are: app: ${aws_instance.app.private_ip}, loadgen: ${aws_instance.loadgen.private_ip}, and db: ${aws_instance.db.private_ip}."
+    value = "The worker private IPs are: app (x86): ${aws_instance.app_x86.private_ip}, app (arm): ${aws_instance.app_arm.private_ip}, loadgen (x86): ${aws_instance.loadgen_x86.private_ip}, loadgen (arm): ${aws_instance.app_arm.private_ip} and db: ${aws_instance.db.private_ip}."
 }
 
 resource "local_file" "generated_inventory" {
   content = templatefile("inventory_tpl.yaml", {controller_ip = aws_instance.instance_1.public_ip, 
-  	    				        app_ip = aws_instance.app.public_ip
-  	    				        loadgen_ip = aws_instance.loadgen.public_ip
-  	    				        db_ip = aws_instance.db.public_ip						
+  	    				        app_x86_ip = aws_instance.app_x86.public_ip
+  	    				        loadgen_x86_ip = aws_instance.loadgen_x86.public_ip
+  	    				        app_arm_ip = aws_instance.app_arm.public_ip
+  	    				        loadgen_arm_ip = aws_instance.loadgen_arm.public_ip
+  	    				        db_ip = aws_instance.db.public_ip			
 						})
   filename = "generated_inventory.yaml"
 }

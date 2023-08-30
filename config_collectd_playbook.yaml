@@ -1,5 +1,5 @@
 ---
-- hosts: loadgen
+- hosts: loadgen_arm:loadgen_x86
   become: yes
   tasks: 
   - name: Replace collectd configuration file
