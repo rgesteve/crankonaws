@@ -53,7 +53,6 @@ write_files:
         echo "No tmux server running, please check that it's installed and running"
         exit 1
       fi
-
       tmux new-window -n "db" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${db_ip}
 
       tmux new-window -n "app_x86" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${app_x86_ip}
@@ -61,6 +60,8 @@ write_files:
 
       tmux new-window -n "app_arm" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${app_arm_ip}
       tmux new-window -n "loadgen_arm" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_arm_ip}
+      
+      tmux new-window -n "for_arm" /bin/bash
 
 
   - path: /tmp/crank_copy-traces.sh
@@ -135,17 +136,36 @@ write_files:
     permissions: '0755'
     content: |
       #!/usr/bin/env bash
+
+      arg=$1
+
+      if [ -z "$arg" ]; then
+        archtotry="x86"
+      else
+        archtotry=$arg
+      fi
+
+      if [ "x86" == "$${archtotry}" ]; then
+      	 instance_type="${type_x86}"
+      elif [ "arm" == "$${archtotry}" ]; then
+         instance_type="${type_arm}"
+      else
+        echo "Expecting values of 'x86' or 'arm', got none of those, so exiting..."
+        exit 1
+      fi
+
       configs=("platform.benchmarks.yml" "plaintext.benchmarks.yml" "platform.benchmarks.yml" "json.benchmarks.yml")
       scenarios=("plaintext" "plaintext" "json" "json")
       wlnames=("platformplaintext" "plaintext" "platformjson" "json")
-      machine="${machine}"
+      machine="$${instance_type}"
+      #machine=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-type 2>/dev/null)
       
       for (( i=0; i<$${#configs[@]}; i++ )); do
         config=$${configs[i]}
         scenario=$${scenarios[i]}
         outfname=$${wlnames[i]}_$${machine}_7of10.json
 
-        DOTNET_ROOT=$HOME/dnet7 PATH=$HOME/.dotnet/tools:$PATH crank --config Benchmarks/scenarios/$config --config /tmp/crank_profile.yaml --scenario $scenario --profile aspnet-aws-citrine-lin --application.framework net8.0 --load.framework net8.0 --iterations 10 --exclude 3:0 --exclude-order load:http/rps/mean --json $outfname
+        DOTNET_ROOT=$HOME/dnet7 PATH=$HOME/.dotnet/tools:$PATH crank --config Benchmarks/scenarios/$config --config /tmp/crank_profile.yaml --scenario $scenario --profile aspnet-aws-citrine-lin-$${archtotry} --application.framework net8.0 --load.framework net8.0 --iterations 10 --exclude 3:0 --exclude-order load:http/rps/mean --json $outfname
         #echo "config: " "$config" " running scenario: " "$scenario" "."
       done
 

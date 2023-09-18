@@ -125,7 +125,9 @@ resource "aws_instance" "instance_1" {
                                                  load_arm_ip = aws_instance.loadgen_arm.private_ip, 	 
                                                  ssh_key = aws_key_pair.my-identity-pem.key_name,
 						 # FIXME
-                                                 machine = aws_instance.app_x86.instance_type })
+                                                 type_x86 = aws_instance.app_x86.instance_type
+                                                 type_arm = aws_instance.app_arm.instance_type
+                                               })
     #user_data = data.cloudinit_config.testclinit.rendered
 
     # Not sure how to pass the Intel proxy spec (scp -o "ProxyCommand=nc -x proxy-us.intel.com:1080 %h %p" -i <private_key> <source> <destination>) 
