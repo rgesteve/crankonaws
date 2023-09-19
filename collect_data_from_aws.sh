@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-OUTPUT_DIR="aug30_2"
+OUTPUT_DIR="sep18_4"
 
 mkdir -p $OUTPUT_DIR
 

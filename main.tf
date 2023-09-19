@@ -118,15 +118,15 @@ resource "aws_instance" "instance_1" {
     #user_data = data.template_file.user_data.rendered
     #user_data = file("cloud-init.yml")
     #user_data = templatefile("cloud-init.yml", { app_ip = aws_instance.app_fake.private_ip })
-    user_data = templatefile("cloud-init.yml", { app_x86_ip = aws_instance.app_x86.private_ip,
-                                                 app_arm_ip = aws_instance.app_arm.private_ip,
+    user_data = templatefile("cloud-init.yml", { app_spr_ip = aws_instance.app_spr.private_ip,
+                                                 app_icl_ip = aws_instance.app_icl.private_ip,
                                                  db_ip = aws_instance.db.private_ip, 
-                                                 load_x86_ip = aws_instance.loadgen_x86.private_ip,
-                                                 load_arm_ip = aws_instance.loadgen_arm.private_ip, 	 
+                                                 load_spr_ip = aws_instance.loadgen_spr.private_ip,
+                                                 load_icl_ip = aws_instance.loadgen_icl.private_ip, 	 
                                                  ssh_key = aws_key_pair.my-identity-pem.key_name,
 						 # FIXME
-                                                 type_x86 = aws_instance.app_x86.instance_type
-                                                 type_arm = aws_instance.app_arm.instance_type
+                                                 type_spr = aws_instance.app_spr.instance_type
+                                                 type_icl = aws_instance.app_icl.instance_type
                                                })
     #user_data = data.cloudinit_config.testclinit.rendered
 
@@ -187,7 +187,7 @@ resource "aws_instance" "instance_1" {
 #     }
 # }
 
-resource "aws_instance" "app_x86" {
+resource "aws_instance" "app_spr" {
     # SPR
     #instance_type = "m7i.xlarge"
     instance_type = "m7i.${var.instance_size}xlarge"
@@ -224,7 +224,7 @@ resource "aws_instance" "app_x86" {
 #     }
 # }
 
-resource "aws_instance" "loadgen_x86" {
+resource "aws_instance" "loadgen_spr" {
     instance_type = "m7i.4xlarge"
     ami = "ami-05d251e0fc338590c"
     subnet_id = aws_subnet.gabe_subnet.id
@@ -240,10 +240,28 @@ resource "aws_instance" "loadgen_x86" {
     }
 }
 
-resource "aws_instance" "app_arm" {
-    # Graviton3 (ARM)
-    instance_type = "m7g.${var.instance_size}xlarge"
-    ami = "ami-0b5801d081fa3a76c"
+# resource "aws_instance" "app_arm" {
+#     # Graviton3 (ARM)
+#     instance_type = "m7g.${var.instance_size}xlarge"
+#     ami = "ami-0b5801d081fa3a76c"
+#     subnet_id = aws_subnet.gabe_subnet.id
+#     key_name = aws_key_pair.my-identity-pem.key_name
+#     #security_groups = [aws_security_group.allow_ssh_from_intel.name]
+#     vpc_security_group_ids = [aws_default_security_group.allow_ssh_from_intel.id]
+#     #private_ip = "${cidrhost(aws_vpc.gabe_vpc.cidr_block, 20 + count.index)}"
+
+#     user_data = file("cloud-init-worker.yml")
+    
+#     tags = {
+#         Name = "rgesteve-crank-app"
+#     }
+# }
+
+resource "aws_instance" "app_icl" {
+    # ICL
+    #instance_type = "m7i.xlarge"
+    instance_type = "m6i.${var.instance_size}xlarge"
+    ami = "ami-05d251e0fc338590c"
     subnet_id = aws_subnet.gabe_subnet.id
     key_name = aws_key_pair.my-identity-pem.key_name
     #security_groups = [aws_security_group.allow_ssh_from_intel.name]
@@ -257,8 +275,7 @@ resource "aws_instance" "app_arm" {
     }
 }
 
-# This is called "loadgen_arm" but doesn't mean it's an ARM machine, it's just to feed the Graviton
-resource "aws_instance" "loadgen_arm" {
+resource "aws_instance" "loadgen_icl" {
     instance_type = "m7i.4xlarge"
     ami = "ami-05d251e0fc338590c"
     subnet_id = aws_subnet.gabe_subnet.id
@@ -299,24 +316,24 @@ output "controller_ip" {
     value = "${aws_instance.instance_1.public_ip}"
 }
 
-output "machine_type_x86" {
-    value = "${aws_instance.app_x86.instance_type}"
+output "machine_type_spr" {
+    value = "${aws_instance.app_spr.instance_type}"
 }
 
-output "machine_type_arm" {
-    value = "${aws_instance.app_arm.instance_type}"
+output "machine_type_icl" {
+    value = "${aws_instance.app_icl.instance_type}"
 }
 
 # output "sndbox_ip" {
 #     value = "${aws_instance.instance_2.public_ip}"
 # }
 
-output "app_x86_ips" {
-    value = "The application (x86) public IP is: ${aws_instance.app_x86.public_ip}, and its private ip is: ${aws_instance.app_x86.private_ip}."
+output "app_spr_ips" {
+    value = "The application (SPR) public IP is: ${aws_instance.app_spr.public_ip}, and its private ip is: ${aws_instance.app_spr.private_ip}."
 }
 
-output "app_arm_ips" {
-    value = "The application (arm) public IP is: ${aws_instance.app_arm.public_ip}, and its private ip is: ${aws_instance.app_arm.private_ip}."
+output "app_icl_ips" {
+    value = "The application (ICL) public IP is: ${aws_instance.app_icl.public_ip}, and its private ip is: ${aws_instance.app_icl.private_ip}."
 }
 
 # output "worker_pubips" {
@@ -328,15 +345,15 @@ output "app_arm_ips" {
 # }
 
 output "private_ips" {
-    value = "The worker private IPs are: app (x86): ${aws_instance.app_x86.private_ip}, app (arm): ${aws_instance.app_arm.private_ip}, loadgen (x86): ${aws_instance.loadgen_x86.private_ip}, loadgen (arm): ${aws_instance.app_arm.private_ip} and db: ${aws_instance.db.private_ip}."
+    value = "The worker private IPs are: app (spr): ${aws_instance.app_spr.private_ip}, app (icl): ${aws_instance.app_icl.private_ip}, loadgen (spr): ${aws_instance.loadgen_spr.private_ip}, loadgen (icl): ${aws_instance.app_icl.private_ip} and db: ${aws_instance.db.private_ip}."
 }
 
 resource "local_file" "generated_inventory" {
   content = templatefile("inventory_tpl.yaml", {controller_ip = aws_instance.instance_1.public_ip, 
-  	    				        app_x86_ip = aws_instance.app_x86.public_ip
-  	    				        loadgen_x86_ip = aws_instance.loadgen_x86.public_ip
-  	    				        app_arm_ip = aws_instance.app_arm.public_ip
-  	    				        loadgen_arm_ip = aws_instance.loadgen_arm.public_ip
+  	    				        app_spr_ip = aws_instance.app_spr.public_ip
+  	    				        loadgen_spr_ip = aws_instance.loadgen_spr.public_ip
+  	    				        app_icl_ip = aws_instance.app_icl.public_ip
+  	    				        loadgen_icl_ip = aws_instance.loadgen_icl.public_ip
   	    				        db_ip = aws_instance.db.public_ip			
 						})
   filename = "generated_inventory.yaml"

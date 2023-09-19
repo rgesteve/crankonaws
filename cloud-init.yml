@@ -55,13 +55,13 @@ write_files:
       fi
       tmux new-window -n "db" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${db_ip}
 
-      tmux new-window -n "app_x86" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${app_x86_ip}
-      tmux new-window -n "loadgen_x86" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_x86_ip}
+      tmux new-window -n "app_spr" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${app_spr_ip}
+      tmux new-window -n "loadgen_spr" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_spr_ip}
 
-      tmux new-window -n "app_arm" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${app_arm_ip}
-      tmux new-window -n "loadgen_arm" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_arm_ip}
+      tmux new-window -n "app_icl" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${app_icl_ip}
+      tmux new-window -n "loadgen_icl" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_icl_ip}
       
-      tmux new-window -n "for_arm" /bin/bash
+      tmux new-window -n "for_icl" /bin/bash
 
 
   - path: /tmp/crank_copy-traces.sh
@@ -69,8 +69,8 @@ write_files:
     permissions: '0755'
     content: |
       #!/usr/bin/env bash
-      scp -r -i ./${ssh_key} ubuntu@${load_x86_ip}:/var/lib/collectd/csv ./csv_x86
-      scp -r -i ./${ssh_key} ubuntu@${load_arm_ip}:/var/lib/collectd/csv ./csv_arm
+      scp -r -i ./${ssh_key} ubuntu@${load_spr_ip}:/var/lib/collectd/csv ./csv_spr
+      scp -r -i ./${ssh_key} ubuntu@${load_icl_ip}:/var/lib/collectd/csv ./csv_icl
 
   - path: /tmp/crank_profile.yaml
     #owner: "ubuntu:ubuntu"
@@ -81,9 +81,9 @@ write_files:
         - https://github.com/aspnet/Benchmarks/blob/main/scenarios/packages.yml?raw=true
 
       profiles:
-        aspnet-aws-citrine-lin-x86:
+        aspnet-aws-citrine-lin-spr:
           variables:
-            serverAddress: ${app_x86_ip}
+            serverAddress: ${app_spr_ip}
             cores: 28
           jobs: 
             db:
@@ -94,21 +94,21 @@ write_files:
                 - extra
             application:
               endpoints: 
-                - http://${app_x86_ip}:5010
+                - http://${app_spr_ip}:5010
               variables:
                 databaseServer: ${db_ip}
               aliases:
                 - main
             load:
               endpoints: 
-                - http://${load_x86_ip}:5010
+                - http://${load_spr_ip}:5010
               aliases:
                 - warmup
                 - secondary
 
-        aspnet-aws-citrine-lin-arm:
+        aspnet-aws-citrine-lin-icl:
           variables:
-            serverAddress: ${app_arm_ip}
+            serverAddress: ${app_icl_ip}
             cores: 28
           jobs: 
             db:
@@ -119,14 +119,14 @@ write_files:
                 - extra
             application:
               endpoints: 
-                - http://${app_arm_ip}:5010
+                - http://${app_icl_ip}:5010
               variables:
                 databaseServer: ${db_ip}
               aliases:
                 - main
             load:
               endpoints: 
-                - http://${load_arm_ip}:5010
+                - http://${load_icl_ip}:5010
               aliases:
                 - warmup
                 - secondary
@@ -140,17 +140,17 @@ write_files:
       arg=$1
 
       if [ -z "$arg" ]; then
-        archtotry="x86"
+        archtotry="spr"
       else
         archtotry=$arg
       fi
 
-      if [ "x86" == "$${archtotry}" ]; then
-      	 instance_type="${type_x86}"
-      elif [ "arm" == "$${archtotry}" ]; then
-         instance_type="${type_arm}"
+      if [ "spr" == "$${archtotry}" ]; then
+      	 instance_type="${type_spr}"
+      elif [ "icl" == "$${archtotry}" ]; then
+         instance_type="${type_icl}"
       else
-        echo "Expecting values of 'x86' or 'arm', got none of those, so exiting..."
+        echo "Expecting values of 'spr' or 'icl', got none of those, so exiting..."
         exit 1
       fi
 
