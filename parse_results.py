@@ -12,7 +12,8 @@ metrics_of_interest = {
 path_to_files = os.path.join('sep18_4', 'aws_')
 
 #instance_sizes = [2,4,8,12]
-instance_sizes = [12]
+instance_sizes = [2,4,8]
+#instance_sizes = [12]
 workloads = ["plaintext", "platformplaintext", "json", "platformjson"]
 #archs = ["i", "g"]
 archs = ["6", "7"]

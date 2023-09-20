@@ -1,3 +1,5 @@
+./script/benchmark/ctest.sh
+
 
 For icl (m6i.2xlarge)
 
@@ -85,3 +87,39 @@ Vulnerabilities:
   Spectre v2:            Mitigation; Enhanced IBRS, IBPB conditional, RSB filling, PBRSB-eIBRS SW sequence
   Srbds:                 Not affected
   Tsx async abort:       Not affected
+
+Tracing frameworks support in WSF
+
+./image/basevm-generic/template/ansible/custom/roles/docker/templates/daemon.json.j2
+./image/basevm-qat/template/ansible/custom/roles/docker/templates/daemon.json.j2
+./image/HostOS/template/ansible/roles/docker/templates/daemon.json.j2
+./script/automation/post-validation/emonMetrics
+./script/cumulus/pkb/perfkitbenchmarker/data/emon
+./script/cumulus/pkb/perfkitbenchmarker/linux_packages/emon.py
+./script/cumulus/pkb/perfkitbenchmarker/traces/emon.py
+./script/docker/setup/setup-emon.sh
+./script/docker/trace/emon
+./script/power/Dockerfile.1.ptdaemon
+./script/terraform/template/ansible/common/image_to_daemon.yaml
+./script/terraform/template/ansible/common/roles/image-to-daemon
+./script/terraform/template/ansible/traces/roles/emon
+./stack/PyTorch/benchmark/emon.py
+./workload/CN-DataServices/ansible/roles/docker/files/daemon.json
+./workload/EasyRec-TensorFlow/benchmark_emon_with_docker.sh
+./workload/Istio-Envoy/template/ansible/custom/pods_template/bypass-tcpip-daemonset.yaml.j2
+./workload/SSB-Spark-standalone/script/spark-daemon.sh
+
+
+./doc/user-guide/preparing-infrastructure/setup-simics.md
+./script/cumulus/cumulus-config.simics.yaml
+./script/nova/environment/nova.simics.env.sh
+./script/nova/template/ansible/simics
+./script/nova/template/ansible/simics/roles/build_ckpt_pull/tasks/set-simics-metadata.yaml
+./script/nova/template/ansible/simics/roles/build_ckpt_pull/tasks/setup-simics.yaml
+./script/nova/template/ansible/simics/roles/run-simics.push.yaml
+./script/nova/template/ansible/simics/roles/run-simics.yaml
+./script/nova/template/simics
+./script/nova/template/simics/docker_runner_push.simics
+./script/nova/template/simics/starting_checkpoint_pull-SPR.simics
+./script/terraform/template/ansible/traces/roles/simicstrace
+./script/terraform/terraform-config.simics.tf
