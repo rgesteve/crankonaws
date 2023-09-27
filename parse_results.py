@@ -9,21 +9,22 @@ metrics_of_interest = {
 }
 
 #path_to_files = os.path.join('aug28', 'aws_m7g.12xlarge')
-path_to_files = os.path.join('sep18_4', 'aws_')
+path_to_files = os.path.join('sep20_6_3', 'aws_')
 
 #instance_sizes = [2,4,8,12]
-instance_sizes = [2,4,8]
-#instance_sizes = [12]
+#instance_sizes = [2,4,8]
+instance_sizes = [12]
 workloads = ["plaintext", "platformplaintext", "json", "platformjson"]
 #archs = ["i", "g"]
-archs = ["6", "7"]
+#archs = ["6", "7"]
+archs = ["5", "6g"]
 
 def results_fname(wl, sz):
-    return f"{wl}_m%si.{sz}xlarge_%s.json"
+    return f"{wl}_m%s.{sz}xlarge_%s.json"
 
 def read_results_spec(fname_template, archs):
     suffix = "7of10"
-    #return fname_template % (a,suffix)
+    ##return ",".join( fname_template % (a,suffix) for a in archs)
     ##return {a: fname_template % (a,suffix) for a in archs}
     return {a: trace_to_dict(fname_template % (a,suffix), path_to_files) for a in archs}
 
@@ -61,6 +62,7 @@ def trace_to_dict(fname : str, rootpath : str):
 for (i, it) in enumerate(itertools.product(workloads, instance_sizes)):
     fname_template = results_fname(*it)
     fs = read_results_spec(fname_template, archs)
+    #print(f"file: {fs}")
     for k,itm in fs.items():
         #print(f"The instance is {it[1]}, the workload is {it[0]} is: key is: {k}")
         s = f"{it[1]},{it[0]},{k}"

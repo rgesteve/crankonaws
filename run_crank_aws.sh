@@ -3,7 +3,7 @@
 arg=$1
 
 if [ -z "$arg" ]; then
-  instance_size=2
+  instance_size=12     # fixing at 48 vCPU count
 else
   instance_size=$arg
 fi

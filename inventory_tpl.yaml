@@ -10,23 +10,23 @@ all:
       ansible_ssh_user: ubuntu
       ansible_ssh_common_args: -o StrictHostKeyChecking=no
 
-    app_spr:
-      ansible_host: ${app_spr_ip}
+    app_clx:
+      ansible_host: ${app_clx_ip}
       ansible_ssh_user: ubuntu
       ansible_ssh_common_args: -o StrictHostKeyChecking=no
 
-    loadgen_spr:
-      ansible_host: ${loadgen_spr_ip}
+    loadgen_clx:
+      ansible_host: ${loadgen_clx_ip}
       ansible_ssh_user: ubuntu
       ansible_ssh_common_args: -o StrictHostKeyChecking=no
 
-    app_icl:
-      ansible_host: ${app_icl_ip}
+    app_gvt2:
+      ansible_host: ${app_gvt2_ip}
       ansible_ssh_user: ubuntu
       ansible_ssh_common_args: -o StrictHostKeyChecking=no
 
-    loadgen_icl:
-      ansible_host: ${loadgen_icl_ip}
+    loadgen_gvt2:
+      ansible_host: ${loadgen_gvt2_ip}
       ansible_ssh_user: ubuntu
       ansible_ssh_common_args: -o StrictHostKeyChecking=no
 

@@ -1,5 +1,5 @@
 ---
-- hosts: loadgen_arm:loadgen_x86
+- hosts: loadgen_gvt2:loadgen_clx
   become: yes
   tasks: 
   - name: Install packages
