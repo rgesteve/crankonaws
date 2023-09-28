@@ -140,7 +140,8 @@ write_files:
       arg=$1
 
       if [ -z "$arg" ]; then
-        archtotry="clx"
+        echo "Please specify the architecture to test on, clx or gvt2."
+        exit 1
       else
         archtotry=$arg
       fi
