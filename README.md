@@ -50,6 +50,8 @@ login = "ssh -i ./MyIdentity.pem ubuntu@<controller-ip>"
 private_ips = "The worker private IPs are: app: 10.0.1.186, loadgen: 10.0.1.226, and db: 10.0.1.134."
 ``` 
 
+(Alternatively, if you prefer not to parse through the -- potentially large -- `terraform` output, you can type in your terminal `terraform output login`)
+
 Now open another terminal window, and log into the AWS cluster by copying the command after login: 
 ```Bash
 ssh -i ./MyIdentity.pem ubuntu@<controller-ip>
