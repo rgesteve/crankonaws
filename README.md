@@ -112,6 +112,8 @@ Then run
 ```
 in tab0~5. (Basically run the script on every machine we have, since tab 0 and 6 are the same machine, we don't need to run it twice.)
 
+You can switch between tab by pressing ```Ctrl + b``` followed by tab #. To switch to tab 6, press ```Ctrl + b```, release and press the ```6``` to switch to tab 6.
+
 The script will set up the crank ready to run on app/loadgen, if you see some logs like:
 ```
 Agent listening to ...
@@ -124,11 +126,11 @@ In the following part, I will refer tab 0 as `x86 controller` and tab 6 as `arm 
 
 In `x86 controller`, run 
 ```
-./crank_run-crank.sh
+/tmp/crank_run-crank.sh clx
 ```
 and in `arm controller`, run 
 ```
-./crank_run-crank.sh gvt2
+/tmp/crank_run-crank.sh gvt2
 ```
 
 Then we started the the crank iteration on both CLX and GVT. The iteration will normally complete within 1 hour.
@@ -144,7 +146,7 @@ The results will be put into a folder named with the date. (Currently hard coded
 
 If you want a summary of the results, run the data processing script:
 ```python
-python3 parse_results.py >results.csv
+python3 parse_results.py > results.csv
 ```
 
 To kill all the AWS resources you just created, run
