@@ -14,7 +14,22 @@ Here are a list of tools you need to install on your local machine/system to con
 host * !*.intel.com
         ProxyCommand nc -x proxy-us.intel.com:1080 %h %p
 ```
-
+6. To configure aws credentials and config, run (only needed for first time setup)
+```
+aws configure
+```
+It will ask you the following
+```
+AWS Access Key ID [None]:<Enter your AWS Key ID>
+AWS Secret Access Key [None]:<Enter your AWS Secret Key>
+Default Region Name [None]:us-east-2
+Default output format [None]:json
+```
+7. Make sure you have the following proxy settings set if you are accessing Intel network
+```
+http_proxy=http://proxy-chain.intel.com:911
+https_proxy=http://proxy-chain.intel.com:912
+```
 ## Step 1: On your local machine (Linux/VM/WSL)
 
 ### 1.
@@ -71,12 +86,12 @@ scp -o "ProxyCommand=nc -x proxy-us.intel.com:1080 %h %p" -i <private_key_file> 
 ### 1.
 Open a tmux session:
 ```Bash
-$ tmux
+tmux
 ```
 
 ### 2.
 ```Bash
-$ /tmp/crank_connect-workers.sh
+/tmp/crank_connect-workers.sh
 ```
 Then you will see multiple tmux tabs generated, e.g.
 ```
@@ -93,7 +108,7 @@ One thing need to notice here is that tab 0 and tab 6 are actually on the same m
 
 Then run 
 ```Bash
-$ /tmp/crank_setup-crank.sh
+/tmp/crank_setup-crank.sh
 ```
 in tab0~5. (Basically run the script on every machine we have, since tab 0 and 6 are the same machine, we don't need to run it twice.)
 
@@ -109,11 +124,11 @@ In the following part, I will refer tab 0 as `x86 controller` and tab 6 as `arm 
 
 In `x86 controller`, run 
 ```
-$ ./crank_run-crank.sh
+./crank_run-crank.sh
 ```
 and in `arm controller`, run 
 ```
-$ ./crank_run-crank.sh gvt2
+./crank_run-crank.sh gvt2
 ```
 
 Then we started the the crank iteration on both CLX and GVT. The iteration will normally complete within 1 hour.
@@ -132,4 +147,8 @@ If you want a summary of the results, run the data processing script:
 python3 parse_results.py >results.csv
 ```
 
+To kill all the AWS resources you just created, run
+```
+terraform destroy
+```
 If you complete this step, then you have successfully run TechEmpower with Crank on AWS and got the results locally.
