@@ -55,13 +55,13 @@ write_files:
       fi
       tmux new-window -n "db" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${db_ip}
 
-      tmux new-window -n "app_clx" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${app_clx_ip}
-      tmux new-window -n "loadgen_clx" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_clx_ip}
+      tmux new-window -n "app_spr" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${app_spr_ip}
+      tmux new-window -n "loadgen_spr" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_spr_ip}
 
-      tmux new-window -n "app_gvt2" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${app_gvt2_ip}
-      tmux new-window -n "loadgen_gvt2" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_gvt2_ip}
+      tmux new-window -n "app_gvt3" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${app_gvt3_ip}
+      tmux new-window -n "loadgen_gvt3" ssh -i ./${ssh_key} -o StrictHostKeyChecking=no ubuntu@${load_gvt3_ip}
       
-      tmux new-window -n "for_gvt2" /bin/bash
+      tmux new-window -n "for_gvt3" /bin/bash
 
 
   - path: /tmp/crank_copy-traces.sh
@@ -69,8 +69,8 @@ write_files:
     permissions: '0755'
     content: |
       #!/usr/bin/env bash
-      scp -r -i ./${ssh_key} ubuntu@${load_clx_ip}:/var/lib/collectd/csv ./csv_clx
-      scp -r -i ./${ssh_key} ubuntu@${load_gvt2_ip}:/var/lib/collectd/csv ./csv_gvt2
+      scp -r -i ./${ssh_key} ubuntu@${load_spr_ip}:/var/lib/collectd/csv ./csv_spr
+      scp -r -i ./${ssh_key} ubuntu@${load_gvt3_ip}:/var/lib/collectd/csv ./csv_gvt3
 
   - path: /tmp/crank_profile.yaml
     #owner: "ubuntu:ubuntu"
@@ -81,9 +81,9 @@ write_files:
         - https://github.com/aspnet/Benchmarks/blob/main/scenarios/packages.yml?raw=true
 
       profiles:
-        aspnet-aws-citrine-lin-clx:
+        aspnet-aws-citrine-lin-spr:
           variables:
-            serverAddress: ${app_clx_ip}
+            serverAddress: ${app_spr_ip}
             cores: 28
           jobs: 
             db:
@@ -94,21 +94,21 @@ write_files:
                 - extra
             application:
               endpoints: 
-                - http://${app_clx_ip}:5010
+                - http://${app_spr_ip}:5010
               variables:
                 databaseServer: ${db_ip}
               aliases:
                 - main
             load:
               endpoints: 
-                - http://${load_clx_ip}:5010
+                - http://${load_spr_ip}:5010
               aliases:
                 - warmup
                 - secondary
 
-        aspnet-aws-citrine-lin-gvt2:
+        aspnet-aws-citrine-lin-gvt3:
           variables:
-            serverAddress: ${app_gvt2_ip}
+            serverAddress: ${app_gvt3_ip}
             cores: 28
           jobs: 
             db:
@@ -119,14 +119,14 @@ write_files:
                 - extra
             application:
               endpoints: 
-                - http://${app_gvt2_ip}:5010
+                - http://${app_gvt3_ip}:5010
               variables:
                 databaseServer: ${db_ip}
               aliases:
                 - main
             load:
               endpoints: 
-                - http://${load_gvt2_ip}:5010
+                - http://${load_gvt3_ip}:5010
               aliases:
                 - warmup
                 - secondary
@@ -140,18 +140,18 @@ write_files:
       arg=$1
 
       if [ -z "$arg" ]; then
-        echo "Please specify the architecture to test on, clx or gvt2."
+        echo "Please specify the architecture to test on, spr or gvt3."
         exit 1
       else
         archtotry=$arg
       fi
 
-      if [ "clx" == "$${archtotry}" ]; then
-      	 instance_type="${type_clx}"
-      elif [ "gvt2" == "$${archtotry}" ]; then
-         instance_type="${type_gvt2}"
+      if [ "spr" == "$${archtotry}" ]; then
+      	 instance_type="${type_spr}"
+      elif [ "gvt3" == "$${archtotry}" ]; then
+         instance_type="${type_gvt3}"
       else
-        echo "Expecting values of 'clx' or 'gvt2', got none of those, so exiting..."
+        echo "Expecting values of 'spr' or 'gvt3', got none of those, so exiting..."
         exit 1
       fi
 
